@@ -1,0 +1,28 @@
+appId: com.matheusvellone.fichario
+productName: Fichário
+directories:
+  buildResources: build
+files:
+  - out/**
+  - package.json
+asarUnpack:
+  - '**/*.node'
+win:
+  target: nsis
+  executableName: Fichario
+  artifactName: Fichario-Setup-${version}.${ext}
+nsis:
+  oneClick: true
+  perMachine: false
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: Fichário
+  runAfterFinish: true
+  deleteAppDataOnUninstall: false
+mac:
+  target: dmg
+publish:
+  provider: github
+  owner: matheusvellone
+  repo: fichario
+  releaseType: release

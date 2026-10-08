@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+
+body {
+  @apply bg-slate-100 text-sm text-slate-900 antialiased;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
