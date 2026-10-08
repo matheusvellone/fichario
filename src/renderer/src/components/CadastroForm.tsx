@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Cadastro, TipoCadastro } from '../../../shared/types'
 import { CADASTROS } from '../cadastros'
+import { formatarTelefone, telefoneValido } from '../format'
 import Botao from './Botao'
 import Confirmar from './Confirmar'
 
@@ -17,7 +18,8 @@ export default function CadastroForm({ tipo, cadastro, onSalvo, onCancelar, onEx
   const api = textos.api()
   const [nome, setNome] = useState(cadastro?.nome ?? '')
   const [endereco, setEndereco] = useState(cadastro?.endereco ?? '')
-  const [telefone, setTelefone] = useState(cadastro?.telefone ?? '')
+  const telefoneSalvo = formatarTelefone(cadastro?.telefone ?? '')
+  const [telefone, setTelefone] = useState(telefoneSalvo)
   const [observacoes, setObservacoes] = useState(cadastro?.observacoes ?? '')
   const [salvo, setSalvo] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
@@ -32,7 +34,7 @@ export default function CadastroForm({ tipo, cadastro, onSalvo, onCancelar, onEx
     !cadastro ||
     nome !== cadastro.nome ||
     endereco !== (cadastro.endereco ?? '') ||
-    telefone !== (cadastro.telefone ?? '') ||
+    telefone !== telefoneSalvo ||
     observacoes !== (cadastro.observacoes ?? '')
 
   async function salvar(e: FormEvent) {
@@ -52,53 +54,59 @@ export default function CadastroForm({ tipo, cadastro, onSalvo, onCancelar, onEx
   }
 
   return (
-    <section className="mx-auto max-w-4xl rounded-lg bg-white p-5 shadow-sm">
+    <section className="mx-auto max-w-4xl rounded-lg bg-white dark:bg-slate-800 p-5 shadow-sm">
       <h2 className="mb-3 text-base font-semibold">
         {cadastro ? `Dados do ${textos.singular}` : textos.novo}
       </h2>
       <form onSubmit={salvar} className="space-y-3">
         <label className="block">
-          <span className="mb-1 block font-medium text-slate-700">Nome</span>
+          <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">Nome</span>
           <input
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             autoFocus={!cadastro}
             required
-            className="w-full rounded-md border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500"
+            className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 outline-none focus:border-blue-500"
           />
         </label>
         <label className="block">
-          <span className="mb-1 block font-medium text-slate-700">Telefone</span>
+          <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">Telefone</span>
           <input
             type="tel"
             value={telefone}
-            onChange={(e) => setTelefone(e.target.value)}
+            onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
             placeholder="(11) 99999-9999"
-            className="w-full rounded-md border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500"
+            inputMode="numeric"
+            className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 outline-none focus:border-blue-500"
           />
+          {!telefoneValido(telefone) && (
+            <span className="mt-1 block text-xs text-red-700 dark:text-red-400">
+              Telefone incompleto: digite o DDD e o número
+            </span>
+          )}
         </label>
         <label className="block">
-          <span className="mb-1 block font-medium text-slate-700">Endereço</span>
+          <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">Endereço</span>
           <input
             value={endereco}
             onChange={(e) => setEndereco(e.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500"
+            className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 outline-none focus:border-blue-500"
           />
         </label>
 
         <label className="block">
-          <span className="mb-1 block font-medium text-slate-700">Observações</span>
+          <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">Observações</span>
           <textarea
             value={observacoes}
             onChange={(e) => setObservacoes(e.target.value)}
             rows={4}
             placeholder={textos.exemploObservacoes}
-            className="w-full rounded-md border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500"
+            className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 outline-none focus:border-blue-500"
           />
         </label>
 
         <div className="flex items-center gap-3">
-          <Botao type="submit" disabled={!nome.trim() || !alterado}>
+          <Botao type="submit" disabled={!nome.trim() || !alterado || !telefoneValido(telefone)}>
             {cadastro ? 'Salvar alterações' : `Cadastrar ${textos.singular}`}
           </Botao>
           {onCancelar && (
@@ -106,7 +114,7 @@ export default function CadastroForm({ tipo, cadastro, onSalvo, onCancelar, onEx
               Cancelar
             </Botao>
           )}
-          {salvo && <span className="font-medium text-green-700">✓ Salvo!</span>}
+          {salvo && <span className="font-medium text-green-700 dark:text-green-400">✓ Salvo!</span>}
           {cadastro && (
             <Botao
               type="button"
@@ -122,7 +130,7 @@ export default function CadastroForm({ tipo, cadastro, onSalvo, onCancelar, onEx
 
       {confirmando && cadastro && (
         <Confirmar
-          mensagem={`Tem certeza que deseja excluir o ${textos.singular} "${cadastro.nome}" e todas as notas dele? Isso não pode ser desfeito.`}
+          mensagem={`Tem certeza que deseja excluir o ${textos.singular} "${cadastro.nome}"? Ele sai da lista, mas as notas dele continuam na aba Notas.`}
           textoConfirmar="Sim, excluir"
           onConfirmar={excluir}
           onCancelar={() => setConfirmando(false)}

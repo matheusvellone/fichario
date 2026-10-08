@@ -43,18 +43,18 @@ export default function NotasCadastro({ tipo, id, onAbrir }: Props) {
   )
 
   return (
-    <section className="rounded-lg bg-white p-5 shadow-sm">
+    <section className="rounded-lg bg-white dark:bg-slate-800 p-5 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
         <h2 className="text-base font-semibold">Notas</h2>
         {tipo === 'cliente' && resumo.entrou > 0 && (
-          <span className="text-slate-600">
-            · Já recebeu <strong className="text-green-700">{formatarMoeda(resumo.entrou)}</strong>{' '}
+          <span className="text-slate-600 dark:text-slate-400">
+            · Já recebeu <strong className="text-green-700 dark:text-green-400">{formatarMoeda(resumo.entrou)}</strong>{' '}
             deste cliente
           </span>
         )}
         {tipo === 'fornecedor' && resumo.saiu > 0 && (
-          <span className="text-slate-600">
-            · Já pagou <strong className="text-red-700">{formatarMoeda(resumo.saiu)}</strong> para
+          <span className="text-slate-600 dark:text-slate-400">
+            · Já pagou <strong className="text-red-700 dark:text-red-400">{formatarMoeda(resumo.saiu)}</strong> para
             este fornecedor
           </span>
         )}

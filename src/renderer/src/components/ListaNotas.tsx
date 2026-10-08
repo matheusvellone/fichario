@@ -25,39 +25,39 @@ export default function ListaNotas({ notas, vazio, contexto, onAbrir, onMudou }:
     onMudou()
   }
 
-  if (notas.length === 0) return <p className="text-slate-500">{vazio}</p>
+  if (notas.length === 0) return <p className="text-slate-500 dark:text-slate-400">{vazio}</p>
 
   return (
     <>
-      <ul className="divide-y divide-slate-100 rounded-md border border-slate-200">
+      <ul className="divide-y divide-slate-100 dark:divide-slate-700 rounded-md border border-slate-200 dark:border-slate-700">
         {notas.map((n) => (
           <li key={n.id} className="flex items-center gap-3 px-3 py-2">
-            <span className="w-20 shrink-0 text-slate-500">{formatarDia(n.data)}</span>
+            <span className="w-20 shrink-0 text-slate-500 dark:text-slate-400">{formatarDia(n.data)}</span>
             <div className="min-w-0 flex-1">
               <div className="truncate">
                 {n.descricao || (n.tipo === 'entrada' ? 'Dinheiro recebido' : 'Conta paga')}
               </div>
               <div className="flex gap-3 text-xs">
                 {contexto !== 'cliente' && n.cliente_id !== null && (
-                  <button
-                    onClick={() => onAbrir('cliente', n.cliente_id!)}
-                    className="text-blue-700 hover:underline"
-                  >
-                    Cliente: {n.cliente_nome}
-                  </button>
+                  <Vinculo
+                    rotulo="Cliente"
+                    nome={n.cliente_nome}
+                    excluido={n.cliente_excluido_em !== null}
+                    onAbrir={() => onAbrir('cliente', n.cliente_id!)}
+                  />
                 )}
                 {contexto !== 'fornecedor' && n.fornecedor_id !== null && (
-                  <button
-                    onClick={() => onAbrir('fornecedor', n.fornecedor_id!)}
-                    className="text-blue-700 hover:underline"
-                  >
-                    Fornecedor: {n.fornecedor_nome}
-                  </button>
+                  <Vinculo
+                    rotulo="Fornecedor"
+                    nome={n.fornecedor_nome}
+                    excluido={n.fornecedor_excluido_em !== null}
+                    onAbrir={() => onAbrir('fornecedor', n.fornecedor_id!)}
+                  />
                 )}
               </div>
             </div>
             <span
-              className={`shrink-0 font-semibold ${n.tipo === 'entrada' ? 'text-green-700' : 'text-red-700'}`}
+              className={`shrink-0 font-semibold ${n.tipo === 'entrada' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
             >
               {n.tipo === 'entrada' ? '+ ' : '− '}
               {formatarMoeda(n.valor_centavos)}
@@ -98,5 +98,31 @@ export default function ListaNotas({ notas, vazio, contexto, onAbrir, onMudou }:
         />
       )}
     </>
+  )
+}
+
+// Nome do cliente/fornecedor da nota; vira link para a ficha, exceto se ele foi excluído
+function Vinculo({
+  rotulo,
+  nome,
+  excluido,
+  onAbrir
+}: {
+  rotulo: string
+  nome: string | null
+  excluido: boolean
+  onAbrir: () => void
+}) {
+  if (excluido) {
+    return (
+      <span className="text-slate-500 dark:text-slate-400">
+        {rotulo}: {nome} (excluído)
+      </span>
+    )
+  }
+  return (
+    <button onClick={onAbrir} className="text-blue-700 dark:text-blue-400 hover:underline">
+      {rotulo}: {nome}
+    </button>
   )
 }

@@ -35,7 +35,7 @@ export default function TelaCadastros({ tipo, selecao, onSelecao, onAbrir }: Pro
 
   return (
     <div className="flex min-h-0 flex-1">
-      <aside className="flex w-72 shrink-0 flex-col border-r border-slate-300 bg-white">
+      <aside className="flex w-72 shrink-0 flex-col border-r border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800">
         <ListaCadastros
           tipo={tipo}
           busca={busca}
@@ -49,7 +49,7 @@ export default function TelaCadastros({ tipo, selecao, onSelecao, onAbrir }: Pro
 
       <main className="flex-1 overflow-y-auto p-6">
         {selecao.tipo === 'nenhum' && (
-          <div className="flex h-full items-center justify-center text-center text-base text-slate-500">
+          <div className="flex h-full items-center justify-center text-center text-base text-slate-500 dark:text-slate-400">
             <p>
               Escolha um {textos.singular} na lista ao lado
               <br />

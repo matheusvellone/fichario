@@ -13,7 +13,7 @@ export default function Confirmar({ mensagem, textoConfirmar, onConfirmar, onCan
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md space-y-4 rounded-lg bg-white p-5 shadow-xl">
+      <div className="w-full max-w-md space-y-4 rounded-lg bg-white dark:bg-slate-800 p-5 shadow-xl">
         <p>{mensagem}</p>
         <div className="flex justify-end gap-2">
           <Botao variante="secundario" onClick={onCancelar} autoFocus>

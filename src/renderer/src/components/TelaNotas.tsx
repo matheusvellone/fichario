@@ -32,7 +32,7 @@ export default function TelaNotas({
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
-      <section className="rounded-lg bg-white p-5 shadow-sm">
+      <section className="rounded-lg bg-white dark:bg-slate-800 p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <Botao variante="secundario" onClick={() => setMes(mudarMes(mes, -1))}>
             ‹ Mês anterior
@@ -44,20 +44,20 @@ export default function TelaNotas({
         </div>
 
         <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-md bg-green-50 p-3">
-            <div className="text-slate-600">Entrou</div>
-            <div className="text-lg font-semibold text-green-700">
+          <div className="rounded-md bg-green-50 dark:bg-green-950/40 p-3">
+            <div className="text-slate-600 dark:text-slate-400">Entrou</div>
+            <div className="text-lg font-semibold text-green-700 dark:text-green-400">
               {formatarMoeda(resumo.entrou)}
             </div>
           </div>
-          <div className="rounded-md bg-red-50 p-3">
-            <div className="text-slate-600">Saiu</div>
-            <div className="text-lg font-semibold text-red-700">{formatarMoeda(resumo.saiu)}</div>
+          <div className="rounded-md bg-red-50 dark:bg-red-950/40 p-3">
+            <div className="text-slate-600 dark:text-slate-400">Saiu</div>
+            <div className="text-lg font-semibold text-red-700 dark:text-red-400">{formatarMoeda(resumo.saiu)}</div>
           </div>
-          <div className={`rounded-md p-3 ${sobra >= 0 ? 'bg-slate-50' : 'bg-red-50'}`}>
-            <div className="text-slate-600">{sobra >= 0 ? 'Sobrou' : 'Faltou'}</div>
+          <div className={`rounded-md p-3 ${sobra >= 0 ? 'bg-slate-50 dark:bg-slate-700/40' : 'bg-red-50 dark:bg-red-950/40'}`}>
+            <div className="text-slate-600 dark:text-slate-400">{sobra >= 0 ? 'Sobrou' : 'Faltou'}</div>
             <div
-              className={`text-lg font-semibold ${sobra >= 0 ? 'text-slate-800' : 'text-red-700'}`}
+              className={`text-lg font-semibold ${sobra >= 0 ? 'text-slate-800 dark:text-slate-200' : 'text-red-700 dark:text-red-400'}`}
             >
               {formatarMoeda(Math.abs(sobra))}
             </div>
@@ -65,7 +65,7 @@ export default function TelaNotas({
         </div>
       </section>
 
-      <section className="rounded-lg bg-white p-5 shadow-sm">
+      <section className="rounded-lg bg-white dark:bg-slate-800 p-5 shadow-sm">
         <div className="mb-3 flex gap-2">
           <Botao variante="verde" onClick={() => setNova('entrada')}>
             + Recebi dinheiro

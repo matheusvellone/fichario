@@ -2,7 +2,9 @@ import type { DB } from '../db/connection'
 import type { FiltroNotas, Nota, NotaInput, ResumoNotas } from '../../shared/types'
 
 const SELECT_NOTA = `
-  SELECT n.*, c.nome AS cliente_nome, f.nome AS fornecedor_nome
+  SELECT n.*,
+         c.nome AS cliente_nome, c.deleted_at AS cliente_excluido_em,
+         f.nome AS fornecedor_nome, f.deleted_at AS fornecedor_excluido_em
   FROM notas n
   LEFT JOIN clientes c ON c.id = n.cliente_id
   LEFT JOIN fornecedores f ON f.id = n.fornecedor_id`

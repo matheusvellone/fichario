@@ -9,6 +9,7 @@ export interface Cadastro {
   observacoes: string | null
   created_at: string
   updated_at: string
+  deleted_at: string | null
 }
 
 // Cadastro retornado pela busca; `trecho` é o pedaço das observações que bateu com a busca,
@@ -49,6 +50,9 @@ export interface Nota {
   updated_at: string
   cliente_nome: string | null
   fornecedor_nome: string | null
+  // Preenchido quando o cliente/fornecedor da nota foi excluído
+  cliente_excluido_em: string | null
+  fornecedor_excluido_em: string | null
 }
 
 export interface NotaInput {

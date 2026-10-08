@@ -50,6 +50,7 @@ function createWindow(): void {
 }
 
 if (!app.requestSingleInstanceLock()) {
+  console.log('Another instance of the app is already running.')
   app.quit()
 } else {
   app.on('second-instance', () => {

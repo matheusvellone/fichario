@@ -20,6 +20,28 @@ export function centavosDoCampo(texto: string): number {
   return digitos ? Number(digitos) : 0
 }
 
+// Máscara de telefone aplicada enquanto a pessoa digita.
+// DDD + 8 dígitos: (11) 3333-4444 · DDD + 9 dígitos: (11) 99999-4444
+export function formatarTelefone(texto: string): string {
+  let d = texto.replace(/\D/g, '')
+  // Número colado com o código do país (+55 11 99999-1234). Sem o "+", 55 é DDD (RS)
+  if (texto.trim().startsWith('+55')) d = d.slice(2)
+  d = d.slice(0, 11)
+  if (d.length === 0) return ''
+  if (d.length <= 2) return `(${d}`
+  const ddd = `(${d.slice(0, 2)}) `
+  const numero = d.slice(2)
+  if (numero.length <= 4) return ddd + numero
+  const meio = numero.length === 9 ? 5 : 4
+  return `${ddd}${numero.slice(0, meio)}-${numero.slice(meio)}`
+}
+
+// Telefone vazio ou completo (10 ou 11 dígitos)
+export function telefoneValido(telefone: string): boolean {
+  const digitos = telefone.replace(/\D/g, '').length
+  return digitos === 0 || digitos === 10 || digitos === 11
+}
+
 // "AAAA-MM-DD" → "DD/MM/AAAA"
 export function formatarDia(data: string): string {
   const [ano, mes, dia] = data.split('-')

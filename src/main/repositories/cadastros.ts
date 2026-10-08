@@ -41,7 +41,7 @@ export function cadastrosRepo(db: DB, tabela: 'clientes' | 'fornecedores') {
       if (!fts) {
         return db
           .prepare<[], CadastroBusca>(
-            `SELECT *, NULL AS trecho FROM ${tabela} ORDER BY nome COLLATE NOCASE`
+            `SELECT *, NULL AS trecho FROM ${tabela} WHERE deleted_at IS NULL ORDER BY nome COLLATE NOCASE`
           )
           .all()
       }
@@ -58,8 +58,9 @@ export function cadastrosRepo(db: DB, tabela: 'clientes' | 'fornecedores') {
              FROM ${tabelaFts}
              WHERE ${tabelaFts} MATCH :fts
            ) f ON f.id = c.id
-           WHERE f.id IS NOT NULL
-              OR (:digitos <> '' AND ${soDigitos('c.telefone')} LIKE '%' || :digitos || '%')
+           WHERE c.deleted_at IS NULL
+             AND (f.id IS NOT NULL
+              OR (:digitos <> '' AND ${soDigitos('c.telefone')} LIKE '%' || :digitos || '%'))
            ORDER BY c.nome COLLATE NOCASE`
         )
         .all({ fts, digitos, ini: MARCA_INICIO, fim: MARCA_FIM })
@@ -88,8 +89,11 @@ export function cadastrosRepo(db: DB, tabela: 'clientes' | 'fornecedores') {
       return getStmt.get(id)!
     },
 
+    // Exclusão suave: as notas ligadas continuam existindo
     remove(id: number): void {
-      db.prepare(`DELETE FROM ${tabela} WHERE id = ?`).run(id)
+      db.prepare(
+        `UPDATE ${tabela} SET deleted_at = datetime('now', 'localtime') WHERE id = ?`
+      ).run(id)
     }
   }
 }

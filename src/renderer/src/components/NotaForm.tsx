@@ -5,7 +5,7 @@ import Botao from './Botao'
 import { useEsc } from './useEsc'
 
 const campo =
-  'w-full rounded-md border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500'
+  'w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 outline-none focus:border-blue-500'
 
 interface Props {
   // Editando uma nota existente, ou criando uma nova com tipo/cliente definidos
@@ -33,6 +33,9 @@ export default function NotaForm({
   const [descricao, setDescricao] = useState(nota?.descricao ?? '')
   const [fornecedorId, setFornecedorId] = useState(fornecedorInicial)
   const [fornecedores, setFornecedores] = useState<Cadastro[]>([])
+  // Fornecedor excluído não aparece na lista, mas a nota pode continuar ligada a ele
+  const fornecedorExcluido =
+    nota?.fornecedor_id != null && nota.fornecedor_excluido_em !== null ? nota : null
 
   useEffect(() => {
     if (escolherFornecedor) window.api.fornecedores.list().then(setFornecedores)
@@ -62,14 +65,14 @@ export default function NotaForm({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <form
         onSubmit={salvar}
-        className="w-full max-w-md space-y-3 rounded-lg bg-white p-5 shadow-xl"
+        className="w-full max-w-md space-y-3 rounded-lg bg-white dark:bg-slate-800 p-5 shadow-xl"
       >
         <h2 className="text-base font-semibold">
           {tipo === 'entrada' ? 'Dinheiro recebido' : 'Conta paga'}
         </h2>
 
         <label className="block">
-          <span className="mb-1 block font-medium text-slate-700">Valor (R$)</span>
+          <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">Valor (R$)</span>
           <input
             value={centavos > 0 ? valorParaCampo(centavos) : ''}
             onChange={(e) => setCentavos(centavosDoCampo(e.target.value))}
@@ -81,7 +84,7 @@ export default function NotaForm({
         </label>
 
         <label className="block">
-          <span className="mb-1 block font-medium text-slate-700">Data</span>
+          <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">Data</span>
           <input
             type="date"
             value={data}
@@ -90,15 +93,20 @@ export default function NotaForm({
           />
         </label>
 
-        {escolherFornecedor && fornecedores.length > 0 && (
+        {escolherFornecedor && (fornecedores.length > 0 || fornecedorExcluido) && (
           <label className="block">
-            <span className="mb-1 block font-medium text-slate-700">Fornecedor</span>
+            <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">Fornecedor</span>
             <select
               value={fornecedorId ?? ''}
               onChange={(e) => setFornecedorId(e.target.value ? Number(e.target.value) : null)}
               className={campo}
             >
               <option value="">Nenhum</option>
+              {fornecedorExcluido && (
+                <option value={fornecedorExcluido.fornecedor_id!}>
+                  {fornecedorExcluido.fornecedor_nome} (excluído)
+                </option>
+              )}
               {fornecedores.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.nome}
@@ -109,7 +117,7 @@ export default function NotaForm({
         )}
 
         <label className="block">
-          <span className="mb-1 block font-medium text-slate-700">Descrição</span>
+          <span className="mb-1 block font-medium text-slate-700 dark:text-slate-300">Descrição</span>
           <input
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}

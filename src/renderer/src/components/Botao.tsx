@@ -5,8 +5,8 @@ type Tamanho = 'normal' | 'pequeno'
 
 const estilos: Record<Variante, string> = {
   primario: 'bg-blue-600 text-white hover:bg-blue-700',
-  secundario: 'bg-white text-slate-800 border border-slate-300 hover:bg-slate-50',
-  perigo: 'bg-white text-red-700 border border-red-300 hover:bg-red-50',
+  secundario: 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700',
+  perigo: 'bg-white dark:bg-slate-800 text-red-700 dark:text-red-400 border border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/40',
   verde: 'bg-green-600 text-white hover:bg-green-700',
   vermelho: 'bg-red-600 text-white hover:bg-red-700'
 }
