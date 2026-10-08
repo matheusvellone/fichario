@@ -1,26 +1,27 @@
 import { app, ipcMain } from 'electron'
 import type { DB } from './db/connection'
-import type { ClienteInput } from '../shared/types'
-import { clientesRepo } from './repositories/clientes'
+import type { CadastroInput, FiltroNotas, NotaInput } from '../shared/types'
+import { cadastrosRepo } from './repositories/cadastros'
 import { notasRepo } from './repositories/notas'
 
 export function registerIpc(db: DB): void {
-  const clientes = clientesRepo(db)
   const notas = notasRepo(db)
 
-  ipcMain.handle('clientes:list', (_e, busca?: string) => clientes.list(busca))
-  ipcMain.handle('clientes:get', (_e, id: number) => clientes.get(id))
-  ipcMain.handle('clientes:create', (_e, input: ClienteInput) => clientes.create(input))
-  ipcMain.handle('clientes:update', (_e, id: number, input: ClienteInput) =>
-    clientes.update(id, input)
-  )
-  ipcMain.handle('clientes:remove', (_e, id: number) => clientes.remove(id))
+  for (const tabela of ['clientes', 'fornecedores'] as const) {
+    const repo = cadastrosRepo(db, tabela)
+    ipcMain.handle(`${tabela}:list`, (_e, busca?: string) => repo.list(busca))
+    ipcMain.handle(`${tabela}:get`, (_e, id: number) => repo.get(id))
+    ipcMain.handle(`${tabela}:create`, (_e, input: CadastroInput) => repo.create(input))
+    ipcMain.handle(`${tabela}:update`, (_e, id: number, input: CadastroInput) =>
+      repo.update(id, input)
+    )
+    ipcMain.handle(`${tabela}:remove`, (_e, id: number) => repo.remove(id))
+  }
 
-  ipcMain.handle('notas:listByCliente', (_e, clienteId: number) => notas.listByCliente(clienteId))
-  ipcMain.handle('notas:create', (_e, clienteId: number, texto: string) =>
-    notas.create(clienteId, texto)
-  )
-  ipcMain.handle('notas:update', (_e, id: number, texto: string) => notas.update(id, texto))
+  ipcMain.handle('notas:list', (_e, filtro: FiltroNotas) => notas.list(filtro))
+  ipcMain.handle('notas:resumo', (_e, filtro: FiltroNotas) => notas.resumo(filtro))
+  ipcMain.handle('notas:create', (_e, input: NotaInput) => notas.create(input))
+  ipcMain.handle('notas:update', (_e, id: number, input: NotaInput) => notas.update(id, input))
   ipcMain.handle('notas:remove', (_e, id: number) => notas.remove(id))
 
   ipcMain.handle('app:version', () => app.getVersion())

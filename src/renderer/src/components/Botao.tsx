@@ -1,12 +1,14 @@
 import type { ButtonHTMLAttributes } from 'react'
 
-type Variante = 'primario' | 'secundario' | 'perigo'
+type Variante = 'primario' | 'secundario' | 'perigo' | 'verde' | 'vermelho'
 type Tamanho = 'normal' | 'pequeno'
 
 const estilos: Record<Variante, string> = {
   primario: 'bg-blue-600 text-white hover:bg-blue-700',
   secundario: 'bg-white text-slate-800 border border-slate-300 hover:bg-slate-50',
-  perigo: 'bg-white text-red-700 border border-red-300 hover:bg-red-50'
+  perigo: 'bg-white text-red-700 border border-red-300 hover:bg-red-50',
+  verde: 'bg-green-600 text-white hover:bg-green-700',
+  vermelho: 'bg-red-600 text-white hover:bg-red-700'
 }
 
 const tamanhos: Record<Tamanho, string> = {

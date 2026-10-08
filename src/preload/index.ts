@@ -1,18 +1,24 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Api } from '../shared/types'
+import type { Api, CadastroApi } from '../shared/types'
+
+function cadastroApi(tabela: 'clientes' | 'fornecedores'): CadastroApi {
+  return {
+    list: (busca) => ipcRenderer.invoke(`${tabela}:list`, busca),
+    get: (id) => ipcRenderer.invoke(`${tabela}:get`, id),
+    create: (input) => ipcRenderer.invoke(`${tabela}:create`, input),
+    update: (id, input) => ipcRenderer.invoke(`${tabela}:update`, id, input),
+    remove: (id) => ipcRenderer.invoke(`${tabela}:remove`, id)
+  }
+}
 
 const api: Api = {
-  clientes: {
-    list: (busca) => ipcRenderer.invoke('clientes:list', busca),
-    get: (id) => ipcRenderer.invoke('clientes:get', id),
-    create: (input) => ipcRenderer.invoke('clientes:create', input),
-    update: (id, input) => ipcRenderer.invoke('clientes:update', id, input),
-    remove: (id) => ipcRenderer.invoke('clientes:remove', id)
-  },
+  clientes: cadastroApi('clientes'),
+  fornecedores: cadastroApi('fornecedores'),
   notas: {
-    listByCliente: (clienteId) => ipcRenderer.invoke('notas:listByCliente', clienteId),
-    create: (clienteId, texto) => ipcRenderer.invoke('notas:create', clienteId, texto),
-    update: (id, texto) => ipcRenderer.invoke('notas:update', id, texto),
+    list: (filtro) => ipcRenderer.invoke('notas:list', filtro),
+    resumo: (filtro) => ipcRenderer.invoke('notas:resumo', filtro),
+    create: (input) => ipcRenderer.invoke('notas:create', input),
+    update: (id, input) => ipcRenderer.invoke('notas:update', id, input),
     remove: (id) => ipcRenderer.invoke('notas:remove', id)
   },
   updater: {

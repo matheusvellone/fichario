@@ -1,19 +1,24 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import type { Cliente } from '../../../shared/types'
+import type { Cadastro, TipoCadastro } from '../../../shared/types'
+import { CADASTROS } from '../cadastros'
 import Botao from './Botao'
 import Confirmar from './Confirmar'
 
 interface Props {
-  cliente?: Cliente
-  onSalvo: (c: Cliente) => void
+  tipo: TipoCadastro
+  cadastro?: Cadastro
+  onSalvo: (c: Cadastro) => void
   onCancelar?: () => void
   onExcluido?: () => void
 }
 
-export default function ClienteForm({ cliente, onSalvo, onCancelar, onExcluido }: Props) {
-  const [nome, setNome] = useState(cliente?.nome ?? '')
-  const [endereco, setEndereco] = useState(cliente?.endereco ?? '')
-  const [telefone, setTelefone] = useState(cliente?.telefone ?? '')
+export default function CadastroForm({ tipo, cadastro, onSalvo, onCancelar, onExcluido }: Props) {
+  const textos = CADASTROS[tipo]
+  const api = textos.api()
+  const [nome, setNome] = useState(cadastro?.nome ?? '')
+  const [endereco, setEndereco] = useState(cadastro?.endereco ?? '')
+  const [telefone, setTelefone] = useState(cadastro?.telefone ?? '')
+  const [observacoes, setObservacoes] = useState(cadastro?.observacoes ?? '')
   const [salvo, setSalvo] = useState(false)
   const [confirmando, setConfirmando] = useState(false)
 
@@ -24,39 +29,40 @@ export default function ClienteForm({ cliente, onSalvo, onCancelar, onExcluido }
   }, [salvo])
 
   const alterado =
-    !cliente ||
-    nome !== cliente.nome ||
-    endereco !== (cliente.endereco ?? '') ||
-    telefone !== (cliente.telefone ?? '')
+    !cadastro ||
+    nome !== cadastro.nome ||
+    endereco !== (cadastro.endereco ?? '') ||
+    telefone !== (cadastro.telefone ?? '') ||
+    observacoes !== (cadastro.observacoes ?? '')
 
   async function salvar(e: FormEvent) {
     e.preventDefault()
     if (!nome.trim()) return
-    const input = { nome, endereco, telefone }
-    const resultado = cliente
-      ? await window.api.clientes.update(cliente.id, input)
-      : await window.api.clientes.create(input)
+    const input = { nome, telefone, endereco, observacoes }
+    const resultado = cadastro ? await api.update(cadastro.id, input) : await api.create(input)
     setSalvo(true)
     onSalvo(resultado)
   }
 
   async function excluir() {
-    if (!cliente) return
-    await window.api.clientes.remove(cliente.id)
+    if (!cadastro) return
+    await api.remove(cadastro.id)
     setConfirmando(false)
     onExcluido?.()
   }
 
   return (
     <section className="mx-auto max-w-4xl rounded-lg bg-white p-5 shadow-sm">
-      <h2 className="mb-3 text-base font-semibold">{cliente ? 'Dados do cliente' : 'Novo cliente'}</h2>
+      <h2 className="mb-3 text-base font-semibold">
+        {cadastro ? `Dados do ${textos.singular}` : textos.novo}
+      </h2>
       <form onSubmit={salvar} className="space-y-3">
         <label className="block">
           <span className="mb-1 block font-medium text-slate-700">Nome</span>
           <input
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            autoFocus={!cliente}
+            autoFocus={!cadastro}
             required
             className="w-full rounded-md border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500"
           />
@@ -80,9 +86,20 @@ export default function ClienteForm({ cliente, onSalvo, onCancelar, onExcluido }
           />
         </label>
 
+        <label className="block">
+          <span className="mb-1 block font-medium text-slate-700">Observações</span>
+          <textarea
+            value={observacoes}
+            onChange={(e) => setObservacoes(e.target.value)}
+            rows={4}
+            placeholder={textos.exemploObservacoes}
+            className="w-full rounded-md border border-slate-300 px-3 py-1.5 outline-none focus:border-blue-500"
+          />
+        </label>
+
         <div className="flex items-center gap-3">
           <Botao type="submit" disabled={!nome.trim() || !alterado}>
-            {cliente ? 'Salvar alterações' : 'Cadastrar cliente'}
+            {cadastro ? 'Salvar alterações' : `Cadastrar ${textos.singular}`}
           </Botao>
           {onCancelar && (
             <Botao type="button" variante="secundario" onClick={onCancelar}>
@@ -90,22 +107,22 @@ export default function ClienteForm({ cliente, onSalvo, onCancelar, onExcluido }
             </Botao>
           )}
           {salvo && <span className="font-medium text-green-700">✓ Salvo!</span>}
-          {cliente && (
+          {cadastro && (
             <Botao
               type="button"
               variante="perigo"
               className="ml-auto"
               onClick={() => setConfirmando(true)}
             >
-              Excluir cliente
+              Excluir {textos.singular}
             </Botao>
           )}
         </div>
       </form>
 
-      {confirmando && cliente && (
+      {confirmando && cadastro && (
         <Confirmar
-          mensagem={`Tem certeza que deseja excluir o cliente "${cliente.nome}" e todas as suas anotações? Isso não pode ser desfeito.`}
+          mensagem={`Tem certeza que deseja excluir o ${textos.singular} "${cadastro.nome}" e todas as notas dele? Isso não pode ser desfeito.`}
           textoConfirmar="Sim, excluir"
           onConfirmar={excluir}
           onCancelar={() => setConfirmando(false)}
