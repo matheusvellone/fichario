@@ -10,7 +10,8 @@ asarUnpack:
 win:
   target: nsis
   executableName: Fichario
-  artifactName: Fichario-Setup-${version}.${ext}
+  # Nome fixo para o link releases/latest/download/Fichario-Setup.exe funcionar sempre
+  artifactName: Fichario-Setup.${ext}
 nsis:
   oneClick: true
   perMachine: false

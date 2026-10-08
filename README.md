@@ -2,6 +2,8 @@
 
 Controle simples de clientes e anotações de serviços. App desktop (Electron) para Windows, com banco SQLite local e atualização automática.
 
+**Download da versão mais recente:** https://github.com/matheusvellone/fichario/releases/latest/download/Fichario-Setup.exe
+
 ## Desenvolvimento
 
 ```bash
