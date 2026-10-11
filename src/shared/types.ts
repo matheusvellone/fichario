@@ -7,15 +7,22 @@ export interface Cadastro {
   telefone: string | null
   endereco: string | null
   observacoes: string | null
+  // Só clientes têm estes campos
+  rg?: string | null
+  cpf?: string | null
+  cidade?: string | null
+  estado?: string | null // sigla: SP, RJ...
   created_at: string
   updated_at: string
   deleted_at: string | null
 }
 
-// Cadastro retornado pela busca; `trecho` é o pedaço das observações que bateu com a busca,
-// com os termos encontrados entre MARCA_INICIO e MARCA_FIM
+// Cadastro retornado pela busca; `trecho` é o pedaço das observações que bateu com a busca
+// e `trecho_nota` o da descrição de uma nota dele, com os termos encontrados entre
+// MARCA_INICIO e MARCA_FIM
 export interface CadastroBusca extends Cadastro {
   trecho: string | null
+  trecho_nota: string | null
 }
 
 export const MARCA_INICIO = '\u0001'
@@ -26,6 +33,10 @@ export interface CadastroInput {
   telefone: string | null
   endereco: string | null
   observacoes: string | null
+  rg?: string | null
+  cpf?: string | null
+  cidade?: string | null
+  estado?: string | null
 }
 
 export interface CadastroApi {

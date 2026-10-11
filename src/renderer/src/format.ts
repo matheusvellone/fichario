@@ -42,6 +42,28 @@ export function telefoneValido(telefone: string): boolean {
   return digitos === 0 || digitos === 10 || digitos === 11
 }
 
+// Máscara de CPF aplicada enquanto a pessoa digita: 123.456.789-09
+export function formatarCpf(texto: string): string {
+  const d = texto.replace(/\D/g, '').slice(0, 11)
+  return d
+    .replace(/^(\d{3})(\d)/, '$1.$2')
+    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2')
+}
+
+// CPF vazio ou com os 11 dígitos e os dígitos verificadores certos
+export function cpfValido(cpf: string): boolean {
+  const d = cpf.replace(/\D/g, '')
+  if (d.length === 0) return true
+  if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false
+  const verificador = (tamanho: number): number => {
+    let soma = 0
+    for (let i = 0; i < tamanho; i++) soma += Number(d[i]) * (tamanho + 1 - i)
+    return ((soma * 10) % 11) % 10
+  }
+  return verificador(9) === Number(d[9]) && verificador(10) === Number(d[10])
+}
+
 // "AAAA-MM-DD" → "DD/MM/AAAA"
 export function formatarDia(data: string): string {
   const [ano, mes, dia] = data.split('-')

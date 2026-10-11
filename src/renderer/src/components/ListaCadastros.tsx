@@ -37,7 +37,7 @@ export default function ListaCadastros({
           type="search"
           value={busca}
           onChange={(e) => onBusca(e.target.value)}
-          placeholder="Buscar por nome, telefone, endereço ou observação..."
+          placeholder={textos.exemploBusca}
           className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 outline-none focus:border-blue-500"
         />
       </div>
@@ -60,8 +60,15 @@ export default function ListaCadastros({
             >
               <div className="font-medium">{c.nome}</div>
               {c.telefone && <div className="text-xs text-slate-500 dark:text-slate-400">{c.telefone}</div>}
-              {c.endereco && <div className="truncate text-xs text-slate-500 dark:text-slate-400">{c.endereco}</div>}
-              {c.trecho && <Trecho texto={c.trecho} />}
+              {(c.endereco || c.cidade || c.estado) && (
+                <div className="truncate text-xs text-slate-500 dark:text-slate-400">
+                  {[c.endereco, [c.cidade, c.estado].filter(Boolean).join(' - ')]
+                    .filter(Boolean)
+                    .join(', ')}
+                </div>
+              )}
+              {c.trecho && <Trecho rotulo="Observação" texto={c.trecho} />}
+              {c.trecho_nota && <Trecho rotulo="Nota" texto={c.trecho_nota} />}
             </button>
           </li>
         ))}
@@ -70,12 +77,12 @@ export default function ListaCadastros({
   )
 }
 
-// Mostra o pedaço das observações encontrado, destacando as palavras buscadas
-function Trecho({ texto }: { texto: string }) {
+// Mostra o pedaço do texto encontrado, destacando as palavras buscadas
+function Trecho({ rotulo, texto }: { rotulo: string; texto: string }) {
   const partes = texto.split(new RegExp(`${MARCA_INICIO}(.*?)${MARCA_FIM}`, 'g'))
   return (
     <div className="mt-0.5 line-clamp-2 text-xs text-slate-600 dark:text-slate-400">
-      <span className="text-slate-400 dark:text-slate-500">Observação: </span>
+      <span className="text-slate-400 dark:text-slate-500">{rotulo}: </span>
       {partes.map((parte, i) =>
         i % 2 === 1 ? (
           <mark key={i} className="rounded bg-yellow-200 dark:bg-yellow-500/40 dark:text-inherit px-0.5">
