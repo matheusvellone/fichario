@@ -25,6 +25,21 @@ function valores(campos: (keyof CadastroInput)[], input: CadastroInput): (string
   return campos.map((campo) => input[campo]?.trim() || null)
 }
 
+// Pedaço do texto em volta do primeiro termo encontrado, com os termos entre as marcas
+// (o mesmo formato do snippet do FTS)
+function trechoComTermos(texto: string, termos: string[]): string | null {
+  const minusculo = texto.toLowerCase()
+  const posicoes = termos.map((t) => minusculo.indexOf(t)).filter((p) => p >= 0)
+  if (posicoes.length === 0) return null
+  const pos = Math.min(...posicoes)
+  const ini = Math.max(0, pos - 40)
+  const fim = Math.min(texto.length, pos + 80)
+  const marcado = texto
+    .slice(ini, fim)
+    .replace(new RegExp(termos.join('|'), 'giu'), (t) => `${MARCA_INICIO}${t}${MARCA_FIM}`)
+  return `${ini > 0 ? '…' : ''}${marcado}${fim < texto.length ? '…' : ''}`
+}
+
 function soDigitos(coluna: string): string {
   let expr = `IFNULL(${coluna}, '')`
   for (const c of [' ', '(', ')', '-', '.', '+', '/']) expr = `REPLACE(${expr}, '${c}', '')`
@@ -41,6 +56,16 @@ export function cadastrosRepo(db: DB, tabela: 'clientes' | 'fornecedores') {
   const buscaDigitos = colunasDigitos
     .map((coluna) => `${soDigitos(`c.${coluna}`)} LIKE '%' || :digitos || '%'`)
     .join(' OR ')
+  // Nos clientes, a descrição dos serviços também conta como nota
+  const servicosAchados =
+    tabela === 'clientes'
+      ? `UNION ALL
+         SELECT s.cliente_id, s.data, s.id,
+                snippet(servicos_fts, 0, :ini, :fim, '…', 12)
+         FROM servicos_fts
+         JOIN servicos s ON s.id = servicos_fts.rowid
+         WHERE servicos_fts MATCH :fts`
+      : ''
   const getStmt = db.prepare<[number], Cadastro>(`SELECT * FROM ${tabela} WHERE id = ?`)
 
   return {
@@ -54,16 +79,26 @@ export function cadastrosRepo(db: DB, tabela: 'clientes' | 'fornecedores') {
           .all()
       }
 
-      // Só os dígitos: "99999 1234" acha o telefone "(11) 99999-1234"
-      const digitos = busca.replace(/\D/g, '')
-      return db
-        .prepare<{ fts: string; digitos: string; ini: string; fim: string }, CadastroBusca>(
+      // Só os dígitos: "99999 1234" acha o telefone "(11) 99999-1234". Busca com letra
+      // (placa, peça como "6pk2140") não vale aqui, senão "62140" bateria num telefone
+      const digitos = /\p{L}/u.test(busca) ? '' : busca.replace(/\D/g, '')
+      // O FTS só acha o começo das palavras; aqui o termo pode estar no meio
+      // ("6pk2140" em "c6pk2140"). Termos curtos demais ficam de fora para não achar tudo
+      const termos = (busca.match(/[\p{L}\p{N}]+/gu) ?? []).map((p) => p.toLowerCase())
+      const textoCadastro = `lower(IFNULL(c.nome, '') || ' ' || IFNULL(c.endereco, '') || ' ' || IFNULL(c.observacoes, ''))`
+      const buscaTrecho = termos.every((t) => t.length >= 3)
+        ? termos.map((_, i) => `instr(${textoCadastro}, :t${i}) > 0`).join(' AND ')
+        : '0'
+      const parametrosTrecho = Object.fromEntries(termos.map((t, i) => [`t${i}`, t]))
+      const linhas = db
+        .prepare<Record<string, string>, CadastroBusca>(
           `WITH notas_achadas AS MATERIALIZED (
              SELECT n.${colunaNota} AS id, n.data, n.id AS nota_id,
                     snippet(notas_fts, 0, :ini, :fim, '…', 12) AS trecho
              FROM notas_fts
              JOIN notas n ON n.id = notas_fts.rowid
              WHERE notas_fts MATCH :fts AND n.${colunaNota} IS NOT NULL
+             ${servicosAchados}
            )
            SELECT c.*,
                   CASE WHEN instr(f.trecho, :ini) > 0 THEN f.trecho END AS trecho,
@@ -86,10 +121,19 @@ export function cadastrosRepo(db: DB, tabela: 'clientes' | 'fornecedores') {
            WHERE c.deleted_at IS NULL
              AND (f.id IS NOT NULL
               OR n.id IS NOT NULL
-              OR (:digitos <> '' AND (${buscaDigitos})))
+              OR (:digitos <> '' AND (${buscaDigitos}))
+              OR (${buscaTrecho}))
            ORDER BY c.nome COLLATE NOCASE`
         )
-        .all({ fts, digitos, ini: MARCA_INICIO, fim: MARCA_FIM })
+        .all({ fts, digitos, ini: MARCA_INICIO, fim: MARCA_FIM, ...parametrosTrecho })
+
+      // Achado só pelo trecho no meio da palavra: o FTS não deu snippet, monta aqui
+      for (const linha of linhas) {
+        if (!linha.trecho && !linha.trecho_nota && linha.observacoes) {
+          linha.trecho = trechoComTermos(linha.observacoes, termos)
+        }
+      }
+      return linhas
     },
 
     get(id: number): Cadastro | undefined {

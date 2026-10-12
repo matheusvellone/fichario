@@ -9,7 +9,14 @@ const SELECT_NOTA = `
   LEFT JOIN clientes c ON c.id = n.cliente_id
   LEFT JOIN fornecedores f ON f.id = n.fornecedor_id`
 
-// Monta o WHERE a partir do filtro; mês "AAAA-MM" vira um intervalo de datas
+// Mês "AAAA-MM" vira um intervalo de datas: inicio <= data < fim
+export function intervaloDoMes(mes: string): { inicio: string; fim: string } {
+  const [ano, m] = mes.split('-').map(Number)
+  const proximo = m === 12 ? `${ano + 1}-01` : `${ano}-${String(m + 1).padStart(2, '0')}`
+  return { inicio: `${mes}-01`, fim: `${proximo}-01` }
+}
+
+// Monta o WHERE a partir do filtro
 function where(filtro: FiltroNotas): { sql: string; params: Record<string, string | number> } {
   const condicoes: string[] = []
   const params: Record<string, string | number> = {}
@@ -22,11 +29,8 @@ function where(filtro: FiltroNotas): { sql: string; params: Record<string, strin
     params.fornecedorId = filtro.fornecedorId
   }
   if (filtro.mes) {
-    const [ano, mes] = filtro.mes.split('-').map(Number)
-    const proximo = mes === 12 ? `${ano + 1}-01` : `${ano}-${String(mes + 1).padStart(2, '0')}`
     condicoes.push('n.data >= :inicio AND n.data < :fim')
-    params.inicio = `${filtro.mes}-01`
-    params.fim = `${proximo}-01`
+    Object.assign(params, intervaloDoMes(filtro.mes))
   }
   return { sql: condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '', params }
 }
@@ -57,15 +61,37 @@ export function notasRepo(db: DB) {
         .all(params)
     },
 
+    // Os pagamentos de serviços entram junto, exceto na tela de um fornecedor
     resumo(filtro: FiltroNotas): ResumoNotas {
       const { sql, params } = where(filtro)
-      return db
+      const resumo = db
         .prepare<Record<string, string | number>, ResumoNotas>(
           `SELECT IFNULL(SUM(CASE WHEN n.tipo = 'entrada' THEN n.valor_centavos END), 0) AS entrou,
                   IFNULL(SUM(CASE WHEN n.tipo = 'saida' THEN n.valor_centavos END), 0) AS saiu
            FROM notas n ${sql}`
         )
         .get(params)!
+      if (filtro.fornecedorId === undefined) {
+        const condicoes: string[] = []
+        const paramsPagamentos: Record<string, string | number> = {}
+        if (filtro.clienteId !== undefined) {
+          condicoes.push('s.cliente_id = :clienteId')
+          paramsPagamentos.clienteId = filtro.clienteId
+        }
+        if (filtro.mes) {
+          condicoes.push('p.data >= :inicio AND p.data < :fim')
+          Object.assign(paramsPagamentos, intervaloDoMes(filtro.mes))
+        }
+        resumo.entrou += db
+          .prepare<Record<string, string | number>, number>(
+            `SELECT IFNULL(SUM(p.valor_centavos), 0)
+             FROM pagamentos p JOIN servicos s ON s.id = p.servico_id
+             ${condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : ''}`
+          )
+          .pluck()
+          .get(paramsPagamentos)!
+      }
+      return resumo
     },
 
     create(input: NotaInput): Nota {

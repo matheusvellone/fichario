@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { Nota, ResumoNotas, TipoCadastro, TipoNota } from '../../../shared/types'
-import { formatarMoeda, hoje, mudarMes, nomeDoMes } from '../format'
+import {
+  MEIOS_PAGAMENTO,
+  type Nota,
+  type PagamentoDoMes,
+  type ResumoNotas,
+  type TipoCadastro,
+  type TipoNota
+} from '../../../shared/types'
+import { formatarDia, formatarMoeda, hoje, mudarMes, nomeDoMes } from '../format'
 import Botao from './Botao'
-import ListaNotas from './ListaNotas'
+import ListaNotas, { Vinculo } from './ListaNotas'
 import NotaForm from './NotaForm'
 
 export default function TelaNotas({
@@ -12,15 +19,18 @@ export default function TelaNotas({
 }) {
   const [mes, setMes] = useState(hoje().slice(0, 7))
   const [notas, setNotas] = useState<Nota[]>([])
+  const [pagamentos, setPagamentos] = useState<PagamentoDoMes[]>([])
   const [resumo, setResumo] = useState<ResumoNotas>({ entrou: 0, saiu: 0 })
   const [nova, setNova] = useState<TipoNota | null>(null)
 
   const carregar = useCallback(async () => {
-    const [lista, totais] = await Promise.all([
+    const [lista, recebidos, totais] = await Promise.all([
       window.api.notas.list({ mes }),
+      window.api.pagamentos.list(mes),
       window.api.notas.resumo({ mes })
     ])
     setNotas(lista)
+    setPagamentos(recebidos)
     setResumo(totais)
   }, [mes])
 
@@ -81,6 +91,37 @@ export default function TelaNotas({
           onMudou={carregar}
         />
       </section>
+
+      {pagamentos.length > 0 && (
+        <section className="rounded-lg bg-white dark:bg-slate-800 p-5 shadow-sm">
+          <h2 className="mb-3 text-base font-semibold">Pagamentos de serviços</h2>
+          <ul className="divide-y divide-slate-100 dark:divide-slate-700 rounded-md border border-slate-200 dark:border-slate-700">
+            {pagamentos.map((p) => (
+              <li key={p.id} className="flex items-center gap-3 px-3 py-2">
+                <span className="w-20 shrink-0 text-slate-500 dark:text-slate-400">
+                  {formatarDia(p.data)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate">
+                    {p.servico_descricao || 'Serviço'} · {MEIOS_PAGAMENTO[p.meio]}
+                  </div>
+                  <div className="text-xs">
+                    <Vinculo
+                      rotulo="Cliente"
+                      nome={p.cliente_nome}
+                      excluido={p.cliente_excluido_em !== null}
+                      onAbrir={() => onAbrir('cliente', p.cliente_id)}
+                    />
+                  </div>
+                </div>
+                <span className="shrink-0 font-semibold text-green-700 dark:text-green-400">
+                  + {formatarMoeda(p.valor_centavos)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {nova && (
         <NotaForm

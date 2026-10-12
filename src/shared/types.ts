@@ -82,9 +82,61 @@ export interface FiltroNotas {
   mes?: string
 }
 
+// `entrou` inclui os pagamentos de serviços
 export interface ResumoNotas {
   entrou: number
   saiu: number
+}
+
+// Serviço feito para um cliente, com os pagamentos dele (pode ser pago em partes)
+export interface Servico {
+  id: number
+  cliente_id: number
+  data: string // AAAA-MM-DD
+  valor_centavos: number
+  descricao: string | null
+  created_at: string
+  updated_at: string
+  pagamentos: Pagamento[]
+}
+
+export interface ServicoInput {
+  cliente_id: number
+  data: string
+  valor_centavos: number
+  descricao: string | null
+}
+
+export type MeioPagamento = 'dinheiro' | 'pix' | 'cartao'
+
+export const MEIOS_PAGAMENTO: Record<MeioPagamento, string> = {
+  dinheiro: 'Dinheiro',
+  pix: 'Pix',
+  cartao: 'Cartão'
+}
+
+export interface Pagamento {
+  id: number
+  servico_id: number
+  data: string // AAAA-MM-DD
+  valor_centavos: number
+  meio: MeioPagamento
+  created_at: string
+  updated_at: string
+}
+
+export interface PagamentoInput {
+  data: string
+  valor_centavos: number
+  meio: MeioPagamento
+}
+
+// Pagamento listado na aba Notas, com o serviço e o cliente dele
+export interface PagamentoDoMes extends Pagamento {
+  servico_descricao: string | null
+  cliente_id: number
+  cliente_nome: string
+  cliente_excluido_em: string | null
 }
 
 export interface Api {
@@ -95,6 +147,19 @@ export interface Api {
     resumo: (filtro: FiltroNotas) => Promise<ResumoNotas>
     create: (input: NotaInput) => Promise<Nota>
     update: (id: number, input: NotaInput) => Promise<Nota>
+    remove: (id: number) => Promise<void>
+  }
+  servicos: {
+    list: (clienteId: number) => Promise<Servico[]>
+    create: (input: ServicoInput) => Promise<void>
+    update: (id: number, input: ServicoInput) => Promise<void>
+    remove: (id: number) => Promise<void>
+  }
+  pagamentos: {
+    // mes no formato AAAA-MM
+    list: (mes: string) => Promise<PagamentoDoMes[]>
+    create: (servicoId: number, input: PagamentoInput) => Promise<void>
+    update: (id: number, input: PagamentoInput) => Promise<void>
     remove: (id: number) => Promise<void>
   }
   updater: {

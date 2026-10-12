@@ -4,6 +4,7 @@ import { CADASTROS } from '../cadastros'
 import CadastroForm from './CadastroForm'
 import ListaCadastros from './ListaCadastros'
 import NotasCadastro from './NotasCadastro'
+import ServicosCliente from './ServicosCliente'
 
 export type Selecao = { tipo: 'nenhum' } | { tipo: 'novo' } | { tipo: 'cadastro'; id: number }
 
@@ -83,6 +84,9 @@ export default function TelaCadastros({ tipo, selecao, onSelecao, onAbrir }: Pro
                 await carregar()
               }}
             />
+            {tipo === 'cliente' && (
+              <ServicosCliente key={`servicos-${selecionado.id}`} clienteId={selecionado.id} />
+            )}
             <NotasCadastro
               key={`notas-${selecionado.id}`}
               tipo={tipo}

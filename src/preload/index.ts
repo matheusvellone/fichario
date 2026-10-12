@@ -21,6 +21,18 @@ const api: Api = {
     update: (id, input) => ipcRenderer.invoke('notas:update', id, input),
     remove: (id) => ipcRenderer.invoke('notas:remove', id)
   },
+  servicos: {
+    list: (clienteId) => ipcRenderer.invoke('servicos:list', clienteId),
+    create: (input) => ipcRenderer.invoke('servicos:create', input),
+    update: (id, input) => ipcRenderer.invoke('servicos:update', id, input),
+    remove: (id) => ipcRenderer.invoke('servicos:remove', id)
+  },
+  pagamentos: {
+    list: (mes) => ipcRenderer.invoke('pagamentos:list', mes),
+    create: (servicoId, input) => ipcRenderer.invoke('pagamentos:create', servicoId, input),
+    update: (id, input) => ipcRenderer.invoke('pagamentos:update', id, input),
+    remove: (id) => ipcRenderer.invoke('pagamentos:remove', id)
+  },
   updater: {
     onUpdateDownloaded: (cb) => {
       const listener = (_e: Electron.IpcRendererEvent, versao: string): void => cb(versao)

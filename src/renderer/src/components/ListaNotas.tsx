@@ -102,7 +102,7 @@ export default function ListaNotas({ notas, vazio, contexto, onAbrir, onMudou }:
 }
 
 // Nome do cliente/fornecedor da nota; vira link para a ficha, exceto se ele foi excluído
-function Vinculo({
+export function Vinculo({
   rotulo,
   nome,
   excluido,
