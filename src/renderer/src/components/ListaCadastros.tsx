@@ -13,6 +13,7 @@ interface Props {
   busca: string
   onBusca: (v: string) => void
   cadastros: CadastroBusca[]
+  carregando: boolean
   selecionadoId: number | null
   onSelecionar: (id: number) => void
   onNovo: () => void
@@ -23,6 +24,7 @@ export default function ListaCadastros({
   busca,
   onBusca,
   cadastros,
+  carregando,
   selecionadoId,
   onSelecionar,
   onNovo
@@ -46,7 +48,9 @@ export default function ListaCadastros({
       <ul className="flex-1 overflow-y-auto">
         {cadastros.length === 0 && (
           <li className="p-3 text-slate-500 dark:text-slate-400">
-            {busca
+            {carregando
+              ? 'Carregando...'
+              : busca
               ? `Nenhum ${textos.singular} encontrado.`
               : `Nenhum ${textos.singular} cadastrado ainda.`}
           </li>

@@ -21,9 +21,11 @@ export default function TelaCadastros({ tipo, selecao, onSelecao, onAbrir }: Pro
   const textos = CADASTROS[tipo]
   const [busca, setBusca] = useState('')
   const [cadastros, setCadastros] = useState<CadastroBusca[]>([])
+  const [carregando, setCarregando] = useState(true)
 
   const carregar = useCallback(async () => {
     setCadastros(await textos.api().list(busca))
+    setCarregando(false)
   }, [textos, busca])
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function TelaCadastros({ tipo, selecao, onSelecao, onAbrir }: Pro
           busca={busca}
           onBusca={setBusca}
           cadastros={cadastros}
+          carregando={carregando}
           selecionadoId={selecao.tipo === 'cadastro' ? selecao.id : null}
           onSelecionar={(id) => onSelecao({ tipo: 'cadastro', id })}
           onNovo={() => onSelecao({ tipo: 'novo' })}
