@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Cadastro, TipoCadastro } from '../../../shared/types'
 import { CADASTROS, ESTADOS } from '../cadastros'
-import { cpfValido, formatarCpf, formatarTelefone, telefoneValido } from '../format'
+import { cpfCnpjValido, formatarCpfCnpj, formatarTelefone, telefoneValido } from '../format'
 import Botao from './Botao'
 import Confirmar from './Confirmar'
 
@@ -27,7 +27,7 @@ export default function CadastroForm({ tipo, cadastro, onSalvo, onCancelar, onEx
   const [cidade, setCidade] = useState(cadastro?.cidade ?? '')
   const [estado, setEstado] = useState(cadastro?.estado ?? '')
   const [rg, setRg] = useState(cadastro?.rg ?? '')
-  const cpfSalvo = formatarCpf(cadastro?.cpf ?? '')
+  const cpfSalvo = formatarCpfCnpj(cadastro?.cpf ?? '')
   const [cpf, setCpf] = useState(cpfSalvo)
   const [observacoes, setObservacoes] = useState(cadastro?.observacoes ?? '')
   const [salvo, setSalvo] = useState(false)
@@ -49,7 +49,7 @@ export default function CadastroForm({ tipo, cadastro, onSalvo, onCancelar, onEx
     rg !== (cadastro.rg ?? '') ||
     cpf !== cpfSalvo ||
     observacoes !== (cadastro.observacoes ?? '')
-  const valido = telefoneValido(telefone) && cpfValido(cpf)
+  const valido = telefoneValido(telefone) && cpfCnpjValido(cpf)
 
   async function salvar(e: FormEvent) {
     e.preventDefault()
@@ -104,17 +104,15 @@ export default function CadastroForm({ tipo, cadastro, onSalvo, onCancelar, onEx
         {textos.dadosPessoais && (
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className={rotulo}>CPF</span>
+              <span className={rotulo}>CPF/CNPJ</span>
               <input
                 value={cpf}
-                onChange={(e) => setCpf(formatarCpf(e.target.value))}
-                placeholder="000.000.000-00"
-                inputMode="numeric"
+                onChange={(e) => setCpf(formatarCpfCnpj(e.target.value))}
                 className={campo}
               />
-              {!cpfValido(cpf) && (
+              {!cpfCnpjValido(cpf) && (
                 <span className="mt-1 block text-xs text-red-700 dark:text-red-400">
-                  CPF inválido: confira os números
+                  CPF/CNPJ inválido: confira os números
                 </span>
               )}
             </label>

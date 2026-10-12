@@ -10,7 +10,7 @@ export const CADASTROS: Record<
     novo: string
     exemploObservacoes: string
     exemploBusca: string
-    // RG, CPF, cidade e estado
+    // RG, CPF/CNPJ, cidade e estado
     dadosPessoais: boolean
   }
 > = {
@@ -20,7 +20,7 @@ export const CADASTROS: Record<
     plural: 'Clientes',
     novo: 'Novo cliente',
     exemploObservacoes: 'Ex.: portão azul, só atende à tarde',
-    exemploBusca: 'Buscar por nome, telefone, CPF, endereço, cidade, observação ou nota...',
+    exemploBusca: 'Buscar por nome, telefone, CPF/CNPJ, endereço, cidade, observação ou nota...',
     dadosPessoais: true
   },
   fornecedor: {

@@ -42,26 +42,59 @@ export function telefoneValido(telefone: string): boolean {
   return digitos === 0 || digitos === 10 || digitos === 11
 }
 
-// Máscara de CPF aplicada enquanto a pessoa digita: 123.456.789-09
-export function formatarCpf(texto: string): string {
-  const d = texto.replace(/\D/g, '').slice(0, 11)
-  return d
-    .replace(/^(\d{3})(\d)/, '$1.$2')
-    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2')
+// Só os caracteres que contam no documento. CNPJ pode ter letras (alfanumérico, desde 2026)
+function caracteresDocumento(texto: string): string {
+  return texto.toUpperCase().replace(/[^0-9A-Z]/g, '')
 }
 
-// CPF vazio ou com os 11 dígitos e os dígitos verificadores certos
-export function cpfValido(cpf: string): boolean {
-  const d = cpf.replace(/\D/g, '')
-  if (d.length === 0) return true
-  if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false
+// Máscara de CPF/CNPJ aplicada enquanto a pessoa digita. Até 11 dígitos é CPF
+// (123.456.789-09); com mais caracteres, ou com letra, vira CNPJ (12.ABC.345/01DE-35)
+export function formatarCpfCnpj(texto: string): string {
+  let d = caracteresDocumento(texto)
+  if (d.length <= 11 && /^\d*$/.test(d)) {
+    return d
+      .replace(/^(\d{3})(\d)/, '$1.$2')
+      .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2')
+  }
+  // Os dois últimos (dígitos verificadores) são sempre números
+  d = d.slice(0, 12) + d.slice(12, 14).replace(/\D/g, '')
+  return d
+    .replace(/^(\w{2})(\w)/, '$1.$2')
+    .replace(/^(\w{2})\.(\w{3})(\w)/, '$1.$2.$3')
+    .replace(/^(\w{2})\.(\w{3})\.(\w{3})(\w)/, '$1.$2.$3/$4')
+    .replace(/\/(\w{4})(\w)/, '/$1-$2')
+}
+
+function cpfValido(d: string): boolean {
+  if (!/^\d{11}$/.test(d) || /^(\d)\1+$/.test(d)) return false
   const verificador = (tamanho: number): number => {
     let soma = 0
     for (let i = 0; i < tamanho; i++) soma += Number(d[i]) * (tamanho + 1 - i)
     return ((soma * 10) % 11) % 10
   }
   return verificador(9) === Number(d[9]) && verificador(10) === Number(d[10])
+}
+
+// Letras valem o código ASCII menos 48 (A = 17), como define a Receita para o CNPJ alfanumérico
+function cnpjValido(d: string): boolean {
+  if (!/^[0-9A-Z]{12}\d{2}$/.test(d) || /^(\d)\1+$/.test(d)) return false
+  const verificador = (tamanho: number): number => {
+    let soma = 0
+    for (let i = 0; i < tamanho; i++) {
+      const peso = ((tamanho - 1 - i) % 8) + 2
+      soma += (d.charCodeAt(i) - 48) * peso
+    }
+    const resto = soma % 11
+    return resto < 2 ? 0 : 11 - resto
+  }
+  return verificador(12) === Number(d[12]) && verificador(13) === Number(d[13])
+}
+
+// CPF/CNPJ vazio, ou CPF (11 dígitos) ou CNPJ (14 caracteres) com os verificadores certos
+export function cpfCnpjValido(documento: string): boolean {
+  const d = caracteresDocumento(documento)
+  return d.length === 0 || cpfValido(d) || cnpjValido(d)
 }
 
 // "AAAA-MM-DD" → "DD/MM/AAAA"
