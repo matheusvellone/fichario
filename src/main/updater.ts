@@ -8,8 +8,9 @@ export function setupUpdater(getWindow: () => BrowserWindow | null): void {
   let versaoBaixada: string | null = null
 
   ipcMain.handle('updater:restart', () => {
-    // isSilent = true (sem telas do instalador), isForceRunAfter = true (reabre o app)
-    autoUpdater.quitAndInstall(true, true)
+    // isSilent = false (mostra a barra de progresso do instalador; como é "um clique", não pede
+    // nada ao usuário), isForceRunAfter = true (reabre o app)
+    autoUpdater.quitAndInstall(false, true)
   })
   // Caso a janela tenha sido recarregada depois do download
   ipcMain.handle('updater:pending', () => versaoBaixada)
