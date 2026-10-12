@@ -3,7 +3,7 @@ import type { Api, CadastroApi } from '../shared/types'
 
 function cadastroApi(tabela: 'clientes' | 'fornecedores'): CadastroApi {
   return {
-    list: (busca) => ipcRenderer.invoke(`${tabela}:list`, busca),
+    list: (busca, campos) => ipcRenderer.invoke(`${tabela}:list`, busca, campos),
     get: (id) => ipcRenderer.invoke(`${tabela}:get`, id),
     create: (input) => ipcRenderer.invoke(`${tabela}:create`, input),
     update: (id, input) => ipcRenderer.invoke(`${tabela}:update`, id, input),

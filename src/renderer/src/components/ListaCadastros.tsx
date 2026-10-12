@@ -1,17 +1,22 @@
 import type { ReactNode } from 'react'
 import {
+  CAMPOS_BUSCA,
   MARCA_FIM,
   MARCA_INICIO,
   type CadastroBusca,
+  type CampoBusca,
   type TipoCadastro
 } from '../../../shared/types'
-import { CADASTROS } from '../cadastros'
+import { CADASTROS, ROTULOS_BUSCA } from '../cadastros'
 import Botao from './Botao'
 
 interface Props {
   tipo: TipoCadastro
   busca: string
   onBusca: (v: string) => void
+  // Campos em que a busca procura; sem eles, procura em todos e não mostra os checkboxes
+  campos?: CampoBusca[]
+  onCampos: (campos: CampoBusca[]) => void
   cadastros: CadastroBusca[]
   carregando: boolean
   selecionadoId: number | null
@@ -23,6 +28,8 @@ export default function ListaCadastros({
   tipo,
   busca,
   onBusca,
+  campos,
+  onCampos,
   cadastros,
   carregando,
   selecionadoId,
@@ -30,6 +37,10 @@ export default function ListaCadastros({
   onNovo
 }: Props) {
   const textos = CADASTROS[tipo]
+  // Destaca só o que a busca olhou
+  const buscaEm = (campo: CampoBusca): string => (!campos || campos.includes(campo) ? busca : '')
+  const alternar = (campo: CampoBusca, marcado: boolean): void =>
+    onCampos(CAMPOS_BUSCA.filter((c) => (c === campo ? marcado : campos?.includes(c))))
   return (
     <>
       <div className="space-y-2 border-b border-slate-200 dark:border-slate-700 p-3">
@@ -43,6 +54,20 @@ export default function ListaCadastros({
           placeholder={textos.exemploBusca}
           className="w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 outline-none focus:border-blue-500"
         />
+        {campos && (
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
+            {CAMPOS_BUSCA.map((campo) => (
+              <label key={campo} className="flex cursor-pointer items-center gap-1.5">
+                <input
+                  type="checkbox"
+                  checked={campos.includes(campo)}
+                  onChange={(e) => alternar(campo, e.target.checked)}
+                />
+                {ROTULOS_BUSCA[campo]}
+              </label>
+            ))}
+          </div>
+        )}
       </div>
 
       <ul className="flex-1 overflow-y-auto">
@@ -64,13 +89,16 @@ export default function ListaCadastros({
               }`}
             >
               <div className="font-medium">
-                <DestacadoBusca texto={c.nome} busca={busca} />
+                <DestacadoBusca texto={c.nome} busca={buscaEm('nome')} />
               </div>
               {c.telefone && (
                 <div className="text-xs text-slate-500 dark:text-slate-400">
                   <Destacado
                     texto={c.telefone}
-                    faixas={[...faixasTexto(c.telefone, busca), ...faixasDigitos(c.telefone, busca)]}
+                    faixas={[
+                      ...faixasTexto(c.telefone, buscaEm('telefone')),
+                      ...faixasDigitos(c.telefone, buscaEm('telefone'))
+                    ]}
                   />
                 </div>
               )}
@@ -80,7 +108,7 @@ export default function ListaCadastros({
                     texto={[c.endereco, [c.cidade, c.estado].filter(Boolean).join(' - ')]
                       .filter(Boolean)
                       .join(', ')}
-                    busca={busca}
+                    busca={buscaEm('endereco')}
                   />
                 </div>
               )}

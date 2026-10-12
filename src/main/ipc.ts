@@ -2,6 +2,7 @@ import { app, ipcMain } from 'electron'
 import type { DB } from './db/connection'
 import type {
   CadastroInput,
+  CampoBusca,
   FiltroNotas,
   NotaInput,
   PagamentoInput,
@@ -18,7 +19,9 @@ export function registerIpc(db: DB): void {
 
   for (const tabela of ['clientes', 'fornecedores'] as const) {
     const repo = cadastrosRepo(db, tabela)
-    ipcMain.handle(`${tabela}:list`, (_e, busca?: string) => repo.list(busca))
+    ipcMain.handle(`${tabela}:list`, (_e, busca?: string, campos?: CampoBusca[]) =>
+      repo.list(busca, campos)
+    )
     ipcMain.handle(`${tabela}:get`, (_e, id: number) => repo.get(id))
     ipcMain.handle(`${tabela}:create`, (_e, input: CadastroInput) => repo.create(input))
     ipcMain.handle(`${tabela}:update`, (_e, id: number, input: CadastroInput) =>

@@ -39,8 +39,23 @@ export interface CadastroInput {
   estado?: string | null
 }
 
+// Onde a busca de cadastros procura; cada um tem um checkbox na tela de clientes
+export const CAMPOS_BUSCA = [
+  'nome',
+  'telefone',
+  'endereco',
+  'cpf',
+  'rg',
+  'observacoes',
+  'servicos',
+  'notas'
+] as const
+
+export type CampoBusca = (typeof CAMPOS_BUSCA)[number]
+
 export interface CadastroApi {
-  list: (busca?: string) => Promise<CadastroBusca[]>
+  // Sem `campos`, procura em todos
+  list: (busca?: string, campos?: CampoBusca[]) => Promise<CadastroBusca[]>
   get: (id: number) => Promise<Cadastro | undefined>
   create: (input: CadastroInput) => Promise<Cadastro>
   update: (id: number, input: CadastroInput) => Promise<Cadastro>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { CadastroBusca, TipoCadastro } from '../../../shared/types'
-import { CADASTROS } from '../cadastros'
+import { CADASTROS, useCamposBusca } from '../cadastros'
 import CadastroForm from './CadastroForm'
 import ListaCadastros from './ListaCadastros'
 import NotasCadastro from './NotasCadastro'
@@ -22,11 +22,14 @@ export default function TelaCadastros({ tipo, selecao, onSelecao, onAbrir }: Pro
   const [busca, setBusca] = useState('')
   const [cadastros, setCadastros] = useState<CadastroBusca[]>([])
   const [carregando, setCarregando] = useState(true)
+  const [campos, setCampos] = useCamposBusca()
+  // Só a busca de clientes escolhe os campos; a de fornecedores procura em todos
+  const camposBusca = textos.dadosPessoais ? campos : undefined
 
   const carregar = useCallback(async () => {
-    setCadastros(await textos.api().list(busca))
+    setCadastros(await textos.api().list(busca, camposBusca))
     setCarregando(false)
-  }, [textos, busca])
+  }, [textos, busca, camposBusca])
 
   useEffect(() => {
     const t = setTimeout(carregar, 200)
@@ -43,6 +46,8 @@ export default function TelaCadastros({ tipo, selecao, onSelecao, onAbrir }: Pro
           tipo={tipo}
           busca={busca}
           onBusca={setBusca}
+          campos={camposBusca}
+          onCampos={setCampos}
           cadastros={cadastros}
           carregando={carregando}
           selecionadoId={selecao.tipo === 'cadastro' ? selecao.id : null}

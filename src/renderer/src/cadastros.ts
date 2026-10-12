@@ -1,4 +1,10 @@
-import type { CadastroApi, TipoCadastro } from '../../shared/types'
+import { useState } from 'react'
+import {
+  CAMPOS_BUSCA,
+  type CadastroApi,
+  type CampoBusca,
+  type TipoCadastro
+} from '../../shared/types'
 
 // Textos e API de cada tipo de cadastro; as telas são as mesmas
 export const CADASTROS: Record<
@@ -32,6 +38,45 @@ export const CADASTROS: Record<
     exemploBusca: 'Buscar por nome, telefone, endereço, observação ou nota...',
     dadosPessoais: false
   }
+}
+
+export const ROTULOS_BUSCA: Record<CampoBusca, string> = {
+  nome: 'Nome',
+  telefone: 'Telefone',
+  endereco: 'Endereço',
+  cpf: 'CPF/CNPJ',
+  rg: 'RG',
+  observacoes: 'Observação',
+  servicos: 'Serviços',
+  notas: 'Notas'
+}
+
+const CHAVE_CAMPOS = 'busca-campos'
+
+function camposIniciais(): CampoBusca[] {
+  try {
+    const salvo = JSON.parse(localStorage.getItem(CHAVE_CAMPOS) ?? 'null')
+    if (Array.isArray(salvo)) return CAMPOS_BUSCA.filter((c) => salvo.includes(c))
+  } catch {
+    // sem localStorage ou valor inválido: começa com todos
+  }
+  return [...CAMPOS_BUSCA]
+}
+
+// Campos marcados na busca de clientes, lembrados entre aberturas do app
+export function useCamposBusca(): [CampoBusca[], (campos: CampoBusca[]) => void] {
+  const [campos, setCampos] = useState(camposIniciais)
+
+  const alterar = (novos: CampoBusca[]): void => {
+    try {
+      localStorage.setItem(CHAVE_CAMPOS, JSON.stringify(novos))
+    } catch {
+      // ignora: a escolha só não fica salva
+    }
+    setCampos(novos)
+  }
+
+  return [campos, alterar]
 }
 
 export const ESTADOS: { sigla: string; nome: string }[] = [
